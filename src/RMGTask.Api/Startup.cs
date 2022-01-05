@@ -121,10 +121,10 @@ namespace RMGTask.Api
 
         public static IServiceCollection AddCustomDbContext(this IServiceCollection services, RMGTaskSettings RMGTaskSettings)
         {
-            // use in-memory database
+            //use in-memory database
             services.AddDbContext<RMGTaskContext>(c => c.UseInMemoryDatabase("RMGTask"));
 
-            //// Add RMGTask DbContext
+            // Add RMGTask DbContext
             //services
             //    .AddEntityFrameworkSqlServer()
             //    .AddDbContext<RMGTaskContext>(options =>
@@ -149,7 +149,7 @@ namespace RMGTask.Api
 
                 if (existingUserManager == null)
                 {
-                    services.AddIdentity<RMGTaskUser, RMGTaskRole>(
+                    services.AddIdentity<RMGTaskUser, AspNetRole>(
                         cfg =>
                         {
                             cfg.User.RequireUniqueEmail = true;

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace RMGTask.Infrastructure.Data
 {
-    public class RMGTaskContext : IdentityDbContext<RMGTaskUser, RMGTaskRole, int>
+    public class RMGTaskContext : IdentityDbContext<RMGTaskUser, AspNetRole, int>
     {
         public RMGTaskContext(DbContextOptions<RMGTaskContext> options)
             : base(options)

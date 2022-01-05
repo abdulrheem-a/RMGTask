@@ -10,6 +10,8 @@ namespace RMGTask.Infrastructure.Data
 
             modelBuilder.Entity<Employee>()
              .HasOne(psa => psa.Department);
+            modelBuilder.Entity<Employee>().Property(p => p.Salary).HasColumnType("decimal(10,2)").HasConversion<decimal>();
+
 
         }
     }
