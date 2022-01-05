@@ -19,7 +19,7 @@ namespace RMGTask.Infrastructure.Misc
         /// Initializes a new instance of a AppFileProvider
         /// </summary>
         /// <param name="hostingEnvironment">Hosting environment</param>
-        public AppFileProvider(IHostingEnvironment hostingEnvironment)
+        public AppFileProvider(IWebHostEnvironment hostingEnvironment)
             : base(File.Exists(hostingEnvironment.ContentRootPath) ? Path.GetDirectoryName(hostingEnvironment.ContentRootPath) : hostingEnvironment.ContentRootPath)
         {
             var path = hostingEnvironment.ContentRootPath ?? string.Empty;

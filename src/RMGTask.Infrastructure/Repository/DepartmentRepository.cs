@@ -23,8 +23,8 @@ namespace RMGTask.Infrastructure.Repository
 
         public  async Task<Department> GetDepartmentByIdAsync(int departmentId)
         {
-            var product = await GetByIdAsync(departmentId);
-            return product;
+            var department = await GetByIdAsync(departmentId);
+            return department;
         }
 
         public async Task<IEnumerable<Department>> GetDepartmentListAsync()

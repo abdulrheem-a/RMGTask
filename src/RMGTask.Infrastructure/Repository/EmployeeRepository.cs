@@ -23,8 +23,8 @@ namespace RMGTask.Infrastructure.Repository
 
         public override async Task<Employee> GetByIdAsync(int id)
         {
-            var products = await GetAsync(p => p.Id == id, null, new List<Expression<Func<Employee, object>>> { p => p.Department });
-            return products.FirstOrDefault();
+            var employees = await GetAsync(p => p.Id == id, null, new List<Expression<Func<Employee, object>>> { p => p.Department });
+            return employees.FirstOrDefault();
         }
 
         public async Task<IEnumerable<Employee>> GetEmployeeListAsync()
@@ -85,9 +85,9 @@ namespace RMGTask.Infrastructure.Repository
                 }
             }
 
-            var productPagedList = new PagedList<Employee>(query, new PagingArgs { PageIndex = args.PageIndex, PageSize = args.PageSize, PagingStrategy = args.PagingStrategy }, orderByList, filterList);
+            var employeePagedList = new PagedList<Employee>(query, new PagingArgs { PageIndex = args.PageIndex, PageSize = args.PageSize, PagingStrategy = args.PagingStrategy }, orderByList, filterList);
 
-            return Task.FromResult<IPagedList<Employee>>(productPagedList);
+            return Task.FromResult<IPagedList<Employee>>(employeePagedList);
         }
 
         public async Task<IEnumerable<Employee>> GetEmployeeByNameAsync(string employeeName)

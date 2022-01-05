@@ -22,13 +22,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 
 namespace RMGTask.Api
 {
     public class Startup
     {
 
-        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
         {
             Configuration = configuration;
             HostingEnvironment = hostingEnvironment;
@@ -36,7 +38,7 @@ namespace RMGTask.Api
         }
 
         public IConfiguration Configuration { get; }
-        public IHostingEnvironment HostingEnvironment { get; }
+        public IWebHostEnvironment HostingEnvironment { get; }
         public RMGTaskSettings RMGTaskSettings { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -54,11 +56,11 @@ namespace RMGTask.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseCors("CorsPolicy");
 
-            if (env.IsDevelopment())
+            if (env.EnvironmentName=="Development")
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -71,16 +73,16 @@ namespace RMGTask.Api
             app.UseHttpsRedirection();
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
+            app.UseOpenApi();
             app.UseSwaggerUi3();
 
             app.UseMiddleware<LoggingMiddleware>();
 
-            app.UseMvc(routes =>
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller}/{action=Index}/{id?}");
             });
         }
     }
@@ -94,10 +96,10 @@ namespace RMGTask.Api
                 .AddMvc()
                 .AddFluentValidation(fv =>
                 {
-                    fv.RunDefaultMvcValidationAfterFluentValidationExecutes = false;
+                    fv.DisableDataAnnotationsValidation = false;
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-                .AddJsonOptions(options =>
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -120,20 +122,20 @@ namespace RMGTask.Api
         public static IServiceCollection AddCustomDbContext(this IServiceCollection services, RMGTaskSettings RMGTaskSettings)
         {
             // use in-memory database
-            //services.AddDbContext<RMGTaskContext>(c => c.UseInMemoryDatabase("RMGTask"));
+            services.AddDbContext<RMGTaskContext>(c => c.UseInMemoryDatabase("RMGTask"));
 
-            // Add RMGTask DbContext
-            services
-                .AddEntityFrameworkSqlServer()
-                .AddDbContext<RMGTaskContext>(options =>
-                        options.UseSqlServer(RMGTaskSettings.ConnectionString,
-                        sqlOptions =>
-                        {
-                            sqlOptions.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
-                        }
-                    ),
-                    ServiceLifetime.Scoped
-                 );
+            //// Add RMGTask DbContext
+            //services
+            //    .AddEntityFrameworkSqlServer()
+            //    .AddDbContext<RMGTaskContext>(options =>
+            //            options.UseSqlServer(RMGTaskSettings.ConnectionString,
+            //            sqlOptions =>
+            //            {
+            //                sqlOptions.EnableRetryOnFailure(maxRetryCount: 10, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+            //            }
+            //        ),
+            //        ServiceLifetime.Scoped
+            //     );
 
             return services;
         }
@@ -162,21 +164,34 @@ namespace RMGTask.Api
 
         public static IServiceCollection AddCustomSwagger(this IServiceCollection services)
         {
+            var openApiSecurityScheme = new OpenApiSecurityScheme()
+            {
+                Type = OpenApiSecuritySchemeType.ApiKey,
+                Name = "Authorization",
+                In = OpenApiSecurityApiKeyLocation.Header,
+                Description = "Bearer < Token>",
+                Scheme = "Bearer",
+                BearerFormat = "JWT"
+
+            };
             services.AddSwaggerDocument(config =>
             {
+                config.AddSecurity("Bearer", openApiSecurityScheme);
+                config.OperationProcessors.Add(new OperationSecurityScopeProcessor("Bearer"));
                 config.PostProcess = document =>
                 {
                     document.Info.Version = "v1";
                     document.Info.Title = "RMGTask HTTP API";
                     document.Info.Description = "The RMGTask Service HTTP API";
                     document.Info.TermsOfService = "Terms Of Service";
-                    document.Info.Contact = new NSwag.SwaggerContact
+                    
+                    document.Info.Contact = new NSwag.OpenApiContact
                     {
                         Name = "RMGTask",
                         Email = string.Empty,
                         Url = string.Empty
                     };
-                    document.Info.License = new NSwag.SwaggerLicense
+                    document.Info.License = new NSwag.OpenApiLicense
                     {
                         Name = "Use under LICX",
                         Url = "https://example.com/license"
@@ -234,7 +249,7 @@ namespace RMGTask.Api
             return services;
         }
 
-        public static IServiceProvider AddCustomIntegrations(this IServiceCollection services, IHostingEnvironment hostingEnvironment)
+        public static IServiceProvider AddCustomIntegrations(this IServiceCollection services, IWebHostEnvironment hostingEnvironment)
         {
             services.AddHttpContextAccessor();
 

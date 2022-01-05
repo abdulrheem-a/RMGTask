@@ -40,7 +40,7 @@ namespace RMGTask.Infrastructure.Data
             await SeedDepartmentAsync();
 
             // Employee
-            await SeedProductsAsync();
+            await SeedEmployeeAsync();
 
             // users
             await SeedUsersAsync();
@@ -61,7 +61,7 @@ namespace RMGTask.Infrastructure.Data
             }
         }
 
-        private async Task SeedProductsAsync()
+        private async Task SeedEmployeeAsync()
         {
             if (!_employeeRepository.Table.Any())
             {
